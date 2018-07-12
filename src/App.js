@@ -17,6 +17,7 @@ import {
   ImageBackground,
   TouchableOpacity,
 } from 'react-native';
+import Canvas from 'react-native-canvas';
 
 import generateImage from "./generator";
 import {
@@ -31,7 +32,7 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.openURL = this.openURL.bind(this);
-    this.state = { image: generateImage(), amulet: 'health' };
+    this.state = { image: '', amulet: 'health' };
   }
 
   openURL() {
@@ -43,6 +44,10 @@ export default class App extends Component {
         return Linking.openURL(url);
       }
     }).catch(err => console.error('An error occurred', err));
+  }
+
+  handleCanvas(canvas) {
+    generateImage(canvas, (image) => this.setState({ image }));
   }
 
   render() {
@@ -63,10 +68,11 @@ export default class App extends Component {
               {KEYS.map(key => <Picker.Item key={key} label={TEXTS[key]} value={key} />)}
             </Picker>
           </View>
-            <Image
-              style={styles.amulet}
-              source={{ uri: 'https://i.pinimg.com/originals/00/1d/d9/001dd924e5d2463a6ada0275ddbc0f8b.png' }}
-            />
+          <Canvas ref={this.handleCanvas}/>
+          <Image
+            style={styles.amulet}
+            source={{ uri: this.state.image }}
+          />
           <View style={{ alignItems: 'center', justifyContent: 'center' }}>
             <TouchableOpacity
               onClick={this.openURL}
