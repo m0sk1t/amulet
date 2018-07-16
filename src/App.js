@@ -11,13 +11,18 @@ import {
   Text,
   View,
   Image,
+  Modal,
   Picker,
   Linking,
   StyleSheet,
   ImageBackground,
   TouchableOpacity,
 } from 'react-native';
-import Canvas from 'react-native-canvas';
+import {
+  AdMobBanner,
+  AdMobRewarded,
+} from 'react-native-admob';
+import Canvas from "react-native-canvas";
 
 import generateImage from "./generator";
 import {
@@ -32,7 +37,14 @@ export default class App extends Component {
   constructor(props) {
     super(props);
     this.openURL = this.openURL.bind(this);
-    this.state = { image: '', amulet: 'health' };
+    this.state = {
+      image: '',
+      amulet: 'health',
+      modalVisible: false,
+      rewardDisabled: false,
+    };
+    this.handleCanvas = this.handleCanvas.bind(this);
+    AdMobRewarded.setAdUnitID('ca-app-pub-4462921758323384/6401186233');
   }
 
   openURL() {
@@ -50,6 +62,26 @@ export default class App extends Component {
     generateImage(canvas, (image) => this.setState({ image }));
   }
 
+  setModalVisible(visible) {
+    this.setState({ modalVisible: visible });
+  }
+
+  showAd() {
+    AdMobRewarded.requestAd().then(() => {
+      let gap = 0;
+      AdMobRewarded.showAd();
+      this.setState({ rewardDisabled: true });
+      const intID = setInterval(() => {
+        if (gap > 3600 * 1000) {
+          this.setState({ rewardDisabled: false });
+          clearInterval(intID);
+        } else {
+          gap += 1000;
+        }
+      }, 1000);
+    }).catch(_ => this.setModalVisible(true));
+  }
+
   render() {
     return (
       <ImageBackground
@@ -57,6 +89,35 @@ export default class App extends Component {
         resizeMode="cover"
         source={require('./bg.png')}
       >
+        <Modal
+          transparent={false}
+          animationType="slide"
+          visible={this.state.modalVisible}
+          onRequestClose={() => {
+            alert('Modal has been closed.');
+          }}>
+          <View style={{
+            flex: 1,
+            marginTop: 22,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <View>
+              <Text>Видео пока нет!</Text>
+
+              <TouchableHighlight
+                style={{
+                  margin: 10,
+                  backgroundColor: '#ccc'
+                }}
+                onPress={() => {
+                  this.setModalVisible(!this.state.modalVisible);
+                }}>
+                <Text>Скрыть</Text>
+              </TouchableHighlight>
+            </View>
+          </View>
+        </Modal>
         <View style={styles.container}>
           <View>
             <Text style={styles.instructions}>Выберите амулет</Text>
@@ -84,6 +145,10 @@ export default class App extends Component {
               <Text style={[styles.instructions, { lineHeight: 64, fontSize: 64}]}>↻</Text>
             </TouchableOpacity>
           </View>
+          <AdMobBanner
+            adSize="smartBanner"
+            adUnitID="ca-app-pub-4462921758323384/4855050711"
+          />
         </View>
       </ImageBackground>
     );

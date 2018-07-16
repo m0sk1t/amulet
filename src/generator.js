@@ -35,7 +35,6 @@ const generateImage = (canvas, cb) => {
     // const wnd = window.open('about:blank','image from canvas');
     // wnd.document.write("<img src='" + data + "' alt='from canvas'/>");
   }, 160);
-
 }
 
 export default generateImage;
